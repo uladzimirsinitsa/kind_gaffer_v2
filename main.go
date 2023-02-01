@@ -11,29 +11,23 @@ import (
 )
 
 
-type TargetUrlsStack []string
-
-type Data struct {
-	Code int8 `json:"code"`
-	Url string `json:"url"`
-	Status bool `json:"status"`
-	Parsing_data string `json:"parsing_data"`
+func init() {
+    if err := godotenv.Load(); err != nil {
+        log.Print("No .env file found")
+    }
 }
 
+type Stack []string
 
-type UrlsForTargetUrlsStack struct {
+type JsonUrls struct {
 	Urls []string `json:"urls"`
 }
 
-func init() {
-	godotenv.Load()
-}
-
-func (urls *TargetUrlsStack) IsEmpty() bool {
+func (urls *Stack) IsEmpty() bool {
 	return len(*urls) == 0
 }
 
-func (urls *TargetUrlsStack) Pop() (string, bool) {
+func (urls *Stack) Pop() (string, bool) {
 	if urls.IsEmpty() {
 		return "", false
 	} else {
@@ -44,7 +38,11 @@ func (urls *TargetUrlsStack) Pop() (string, bool) {
 	}
 }
 
-func createTargetUrlsStack() UrlsForTargetUrlsStack {
+func (urls *Stack) Push(str string) {
+	*urls = append(*urls, str)
+}
+
+func createTargetUrlsStack() Stack {
 	URL_DB := os.Getenv("URL_DB")
 	timeout := time.Duration(6 * time.Second)
 	client := http.Client{Timeout: timeout}
@@ -52,20 +50,35 @@ func createTargetUrlsStack() UrlsForTargetUrlsStack {
 	if err != nil {
         log.Println(err)
 		}
-	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
         log.Println(err)
 		}
-	var targetUrls UrlsForTargetUrlsStack
+	var targetUrls JsonUrls
 	err = json.Unmarshal(body, &targetUrls)
 	if err != nil {
         log.Println(err)
 		}
-	log.Print(targetUrls)
-	return targetUrls
+	defer response.Body.Close()
+	urls := Stack(targetUrls.Urls)
+	return urls
+}
+
+var urls = createTargetUrlsStack()
+
+func thread() {
+	for {
+		url, _ := urls.Pop()
+		if url == "" {
+			break
+		}
+		log.Println(url)
+	}
 }
 
 func main() {
-	createTargetUrlsStack()
+	for i := 0; i < 36; i++	{
+		go thread()
+	}
+	thread()
 }
