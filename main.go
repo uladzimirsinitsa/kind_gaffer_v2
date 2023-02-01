@@ -11,7 +11,7 @@ import (
 )
 
 
-type Stack []string
+type TargetUrlsStack []string
 
 type Data struct {
 	Code int8 `json:"code"`
@@ -21,7 +21,7 @@ type Data struct {
 }
 
 
-type UrlsForStack struct {
+type UrlsForTargetUrlsStack struct {
 	Urls []string `json:"urls"`
 }
 
@@ -29,11 +29,11 @@ func init() {
 	godotenv.Load()
 }
 
-func (urls *Stack) IsEmpty() bool {
+func (urls *TargetUrlsStack) IsEmpty() bool {
 	return len(*urls) == 0
 }
 
-func (urls *Stack) Pop() (string, bool) {
+func (urls *TargetUrlsStack) Pop() (string, bool) {
 	if urls.IsEmpty() {
 		return "", false
 	} else {
@@ -44,7 +44,7 @@ func (urls *Stack) Pop() (string, bool) {
 	}
 }
 
-func createStack() {
+func createTargetUrlsStack() []string {
 	URL_DB := os.Getenv("URL_DB")
 	timeout := time.Duration(6 * time.Second)
 	client := http.Client{Timeout: timeout}
@@ -54,12 +54,18 @@ func createStack() {
 		}
 	defer response.Body.Close()
 	body, err := io.ReadAll(response.Body)
-	var data UrlsForStack
-	err = json.Unmarshal(body, &data)
-	log.Print(data)
-
+	if err != nil {
+        log.Println(err)
+		}
+	var urls TargetUrlsStack
+	err = json.Unmarshal(body, &urls)
+	if err != nil {
+        log.Println(err)
+		}
+	log.Print(urls)
+	return urls
 }
 
 func main() {
-	create_stack()
+	createTargetUrlsStack()
 }
