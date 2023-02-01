@@ -44,7 +44,7 @@ func (urls *TargetUrlsStack) Pop() (string, bool) {
 	}
 }
 
-func createTargetUrlsStack() []string {
+func createTargetUrlsStack() UrlsForTargetUrlsStack {
 	URL_DB := os.Getenv("URL_DB")
 	timeout := time.Duration(6 * time.Second)
 	client := http.Client{Timeout: timeout}
@@ -57,13 +57,13 @@ func createTargetUrlsStack() []string {
 	if err != nil {
         log.Println(err)
 		}
-	var urls TargetUrlsStack
-	err = json.Unmarshal(body, &urls)
+	var targetUrls UrlsForTargetUrlsStack
+	err = json.Unmarshal(body, &targetUrls)
 	if err != nil {
         log.Println(err)
 		}
-	log.Print(urls)
-	return urls
+	log.Print(targetUrls)
+	return targetUrls
 }
 
 func main() {
