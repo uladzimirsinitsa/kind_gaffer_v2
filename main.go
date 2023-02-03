@@ -9,14 +9,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
-
 type Stack []string
 
-type JsonUrls struct {
+
+type schemeJSON struct {
 	Urls []string `json:"urls"`
+	Record string `json:"record"`
 }
 
-var urls = createTargetUrlsStack()
+
+//var urls = createTargetUrlsStack()
 
 func (urls *Stack) IsEmpty() bool {
 	return len(*urls) == 0
@@ -37,10 +39,11 @@ func (urls *Stack) Push(str string) {
 	*urls = append(*urls, str)
 }
 
+/*
 func createTargetUrlsStack() Stack {
-	var EnvVariables map[string]string
-	EnvVariables, _ = godotenv.Read()
-	URL_DB := EnvVariables["URL_DB"]
+	var envVariables map[string]string
+	envVariables, _ = godotenv.Read()
+	URL_DB := envVariables["URL_DB"]
 	timeout := time.Duration(6 * time.Second)
 	client := http.Client{Timeout: timeout}
 	response, err := client.Get(URL_DB)
@@ -48,23 +51,61 @@ func createTargetUrlsStack() Stack {
         log.Println(err)
 		}
 	body, err := io.ReadAll(response.Body)
+	// FIX io.ReadAll(response.Body)
 	if err != nil {
         log.Println(err)
 		}
-	var targetUrls JsonUrls
-	err = json.Unmarshal(body, &targetUrls)
+	var dataJSON schemeJSON
+	err = json.Unmarshal(body, &dataJSON)
 	if err != nil {
         log.Println(err)
 		}
 	defer response.Body.Close()
-	urls := Stack(targetUrls.Urls)
+	urls := Stack(dataJSON.Urls)
 	return urls
 }
+*/
+
+func makeRequest(url string) ([]byte, bool) {
+	timeout := time.Duration(6 * time.Second)
+	client := http.Client{Timeout: timeout}
+	response, err := client.Get(url)
+	if err != nil {
+		log.Print("GET error:", err)
+		return []byte(""), false
+	}
+	defer response.Body.Close()
+	body, _ := io.ReadAll(response.Body)
+	return body, true
+}
+
+
+func serializeJSON(body []byte) schemeJSON {
+	var dataJSON schemeJSON
+	err := json.Unmarshal(body, &dataJSON)
+	if err != nil {
+        log.Println(err)
+		}
+	return dataJSON
+}
+
+
+/* TODO
+func createWorkersStack()
+*/
+
+/* TODO
+func updateDB()
+*/
+
+/* TODO
+func reportError()
+*/
 
 func thread() {
 	for {
 		url, _ := urls.Pop()
-		if url == "" {
+		if url == []byte("") {
 			break
 		}
 		log.Println(url)
