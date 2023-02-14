@@ -19,6 +19,7 @@ type schemeJSON struct {
 
 
 //var urls = createTargetUrlsStack()
+var dataJSON schemeJSON
 
 func (urls *Stack) IsEmpty() bool {
 	return len(*urls) == 0
@@ -39,32 +40,6 @@ func (urls *Stack) Push(str string) {
 	*urls = append(*urls, str)
 }
 
-/*
-func createTargetUrlsStack() Stack {
-	var envVariables map[string]string
-	envVariables, _ = godotenv.Read()
-	URL_DB := envVariables["URL_DB"]
-	timeout := time.Duration(6 * time.Second)
-	client := http.Client{Timeout: timeout}
-	response, err := client.Get(URL_DB)
-	if err != nil {
-        log.Println(err)
-		}
-	body, err := io.ReadAll(response.Body)
-	// FIX io.ReadAll(response.Body)
-	if err != nil {
-        log.Println(err)
-		}
-	var dataJSON schemeJSON
-	err = json.Unmarshal(body, &dataJSON)
-	if err != nil {
-        log.Println(err)
-		}
-	defer response.Body.Close()
-	urls := Stack(dataJSON.Urls)
-	return urls
-}
-*/
 
 func makeRequest(url string) ([]byte, bool) {
 	timeout := time.Duration(6 * time.Second)
@@ -81,7 +56,6 @@ func makeRequest(url string) ([]byte, bool) {
 
 
 func serializeJSON(body []byte) schemeJSON {
-	var dataJSON schemeJSON
 	err := json.Unmarshal(body, &dataJSON)
 	if err != nil {
         log.Println(err)
@@ -102,7 +76,7 @@ func updateDB()
 func reportError()
 */
 
-func thread() {
+/*func thread() {
 	for {
 		url, _ := urls.Pop()
 		if url == []byte("") {
@@ -110,11 +84,21 @@ func thread() {
 		}
 		log.Println(url)
 	}
+}*/
+
+func thread() {
+	log.Println(dataJSON)
 }
 
 func main() {
-	for i := 0; i < 2; i++	{
-		go thread()
-	}
+	var envVariables map[string]string
+	envVariables, _ = godotenv.Read()
+	URL_DB := envVariables["URL_DB"]
+	body, _ := makeRequest(URL_DB)
+	dataJSON := serializeJSON(body)
+	log.Println(dataJSON)
+	//for i := 0; i < 2; i++	{
+		//go thread()
+	//}
 	thread()
 }
